@@ -38,6 +38,8 @@ def save_checkpoint(state, is_best, save_dir,epoch, model_name=""):
         os.makedirs(save_dir)
     filename = os.path.join(save_dir, str(epoch) + "_ckpt.pth")
     torch.save(state, filename)
+    filename = os.path.join(save_dir, model_name + "_ckpt.pth")
+    torch.save(state, filename)
     if is_best:
         best_filename = os.path.join(save_dir, "best_ckpt.pth")
         shutil.copyfile(filename, best_filename)

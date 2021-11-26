@@ -246,8 +246,6 @@ class YOLOXHead(nn.Module):
         grids = torch.cat(grids, dim=1).type(dtype)
         strides = torch.cat(strides, dim=1).type(dtype)
 
-        # outputs[..., :2] = (outputs[..., :2] + grids) * strides
-        # outputs[..., 2:4] = torch.exp(outputs[..., 2:4]) * strides
         xy, wh, conf, prob = torch.split(outputs, [2, 2, 1, self.num_classes], dim=2)
         xy = (xy + grids)*strides
         wh = torch.exp(wh)*strides
@@ -260,6 +258,36 @@ class YOLOXHead(nn.Module):
             outputs = torch.cat((xy, wh, conf, prob, labels), dim=2)
         else:
             outputs = torch.cat((xy, wh, conf, prob), dim=2)
+
+
+        
+        # outputs[..., :2] = (outputs[..., :2] + grids) * strides
+        # outputs[..., 2:4] = torch.exp(outputs[..., 2:4]) * strides
+        # txtFile = r"/home/cxl/YOLOX/txtfile/86.txt"
+        # f = open(txtFile, 'w')
+        # # for key,value in checkPoint.items():
+        # outputs=outputs.contiguous()
+        # out = outputs.view(1,-1).detach().numpy() 
+        # count = 0
+        # for  num in out[0]:
+        #     strNum = format(num,'.4f')
+        #     count+=1
+          
+        #     if(count%86==0):
+        #         f.write(strNum+'\n')
+        #     else:
+        #         f.write(strNum+' ') 
+              
+
+
+
+        # f.write('\n')
+           
+        # f.close()
+   
+        
+        # return outputs
+        
 
         return outputs
 
@@ -279,12 +307,7 @@ class YOLOXHead(nn.Module):
         cls_preds = outputs[:, :, 5:]  # [batch, n_anchors_all, n_cls]
 
         # calculate targets
-        mixup = labels.shape[2] > 5
-        if mixup:
-            label_cut = labels[..., :5]
-        else:
-            label_cut = labels
-        nlabel = (label_cut.sum(dim=2) > 0).sum(dim=1)  # number of objects
+        nlabel = (labels.sum(dim=2) > 0).sum(dim=1)  # number of objects
 
         total_num_anchors = outputs.shape[1]
         x_shifts = torch.cat(x_shifts, 1)  # [1, n_anchors_all]
@@ -502,7 +525,7 @@ class YOLOXHead(nn.Module):
         with torch.cuda.amp.autocast(enabled=False):
             cls_preds_ = (
                 cls_preds_.float().unsqueeze(0).repeat(num_gt, 1, 1).sigmoid_()
-                * obj_preds_.unsqueeze(0).repeat(num_gt, 1, 1).sigmoid_()
+                * obj_preds_.float().unsqueeze(0).repeat(num_gt, 1, 1).sigmoid_()
             )
             pair_wise_cls_loss = F.binary_cross_entropy(
                 cls_preds_.sqrt_(), gt_cls_per_image, reduction="none"
@@ -625,26 +648,27 @@ class YOLOXHead(nn.Module):
     def dynamic_k_matching(self, cost, pair_wise_ious, gt_classes, num_gt, fg_mask):
         # Dynamic K
         # ---------------------------------------------------------------
-        matching_matrix = torch.zeros_like(cost)
+        matching_matrix = torch.zeros_like(cost, dtype=torch.uint8)
 
         ious_in_boxes_matrix = pair_wise_ious
         n_candidate_k = min(10, ious_in_boxes_matrix.size(1))
         topk_ious, _ = torch.topk(ious_in_boxes_matrix, n_candidate_k, dim=1)
         dynamic_ks = torch.clamp(topk_ious.sum(1).int(), min=1)
+        dynamic_ks = dynamic_ks.tolist()
         for gt_idx in range(num_gt):
             _, pos_idx = torch.topk(
-                cost[gt_idx], k=dynamic_ks[gt_idx].item(), largest=False
+                cost[gt_idx], k=dynamic_ks[gt_idx], largest=False
             )
-            matching_matrix[gt_idx][pos_idx] = 1.0
+            matching_matrix[gt_idx][pos_idx] = 1
 
         del topk_ious, dynamic_ks, pos_idx
 
         anchor_matching_gt = matching_matrix.sum(0)
         if (anchor_matching_gt > 1).sum() > 0:
             _, cost_argmin = torch.min(cost[:, anchor_matching_gt > 1], dim=0)
-            matching_matrix[:, anchor_matching_gt > 1] *= 0.0
-            matching_matrix[cost_argmin, anchor_matching_gt > 1] = 1.0
-        fg_mask_inboxes = matching_matrix.sum(0) > 0.0
+            matching_matrix[:, anchor_matching_gt > 1] *= 0
+            matching_matrix[cost_argmin, anchor_matching_gt > 1] = 1
+        fg_mask_inboxes = matching_matrix.sum(0) > 0
         num_fg = fg_mask_inboxes.sum().item()
 
         fg_mask[fg_mask.clone()] = fg_mask_inboxes

@@ -24,7 +24,7 @@ class Exp(BaseExp):
         # ---------------- dataloader config ---------------- #
         # set worker to 4 for shorter dataloader init time
         self.data_num_workers = 4
-        self.input_size = (384, 384)  # (height, width)
+        self.input_size = (160, 160)  # (height, width)
         # Actual multiscale ranges: [640-5*32, 640+5*32].
         # To disable multiscale training, set the
         # self.multiscale_range to 0.
@@ -50,11 +50,11 @@ class Exp(BaseExp):
 
         # --------------  training config --------------------- #
         self.warmup_epochs = 5
-        self.max_epoch = 300
+        self.max_epoch = 120
         self.warmup_lr = 0
         self.basic_lr_per_img = 0.01 / 64.0
         self.scheduler = "yoloxwarmcos"
-        self.no_aug_epochs = 15
+        self.no_aug_epochs = 35
         self.min_lr_ratio = 0.05
         self.ema = True
 
@@ -65,7 +65,7 @@ class Exp(BaseExp):
         self.exp_name = os.path.split(os.path.realpath(__file__))[1].split(".")[0]
 
         # -----------------  testing config ------------------ #
-        self.test_size = (384, 384)
+        self.test_size = (160, 160)
         self.test_conf = 0.01
         self.nmsthre = 0.65
 

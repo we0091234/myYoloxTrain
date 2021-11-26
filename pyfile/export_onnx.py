@@ -80,9 +80,9 @@ def main():
     model = replace_module(model, nn.SiLU, SiLU)
     model.head.decode_in_inference = True    #true  新的onnx，输出是8400*86  False 输出是8400*85
     model.head.onnx_export=True            #设为true才行
-
     logger.info("loading checkpoint done.")
-    dummy_input = torch.randn(args.batch_size, 3, exp.test_size[0], exp.test_size[1])
+    dummy_input = torch.ones(args.batch_size, 3, exp.test_size[0], exp.test_size[1])
+    print(exp.test_size)
 
     torch.onnx._export(
         model,
@@ -102,9 +102,10 @@ def main():
         from onnxsim import simplify
 
         input_shapes = {args.input: list(dummy_input.shape)} if args.dynamic else None
-        
+
         # use onnxsimplify to reduce reduent model.
         onnx_model = onnx.load(args.output_name)
+
         model_simp, check = simplify(onnx_model,
                                      dynamic_input_shape=args.dynamic,
                                      input_shapes=input_shapes)
