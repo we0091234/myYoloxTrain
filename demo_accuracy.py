@@ -274,7 +274,7 @@ def writeToExcel(excelPath,modelPath,numClass,allCat,mylabel=None,args=None):
 
     nrows = table.max_row
     nrows = nrows + 1
-    table.cell(nrows, 1).value = modelPath+"_"+str(args.tsize_h)+"_"+str(args.tsize_h)+"_conf:"+str(args.conf)
+    table.cell(nrows, 1).value = modelPath+"_"+str(args.tsize_h)+"_"+str(args.tsize_w)+"_conf:"+str(args.conf)
     nrows = nrows + 1
     table.cell(nrows, 1).value =args.image_path
     nrows = nrows + 1
@@ -440,6 +440,7 @@ def main(exp, args,modelFile):
     excelPath= args.excel_path
     # modelPath =r"M:\Yolox\YOLOX-main\model_s"
     mylabel=['head', 'leg', 'hand','back','nostd',"body","plate","logo",]
+    # mylabel=['person', 'car', 'tricycle','Nostd','case',"unble"]
     numClass=8
     fileList=[]
     allFilePath(imagePath,fileList)

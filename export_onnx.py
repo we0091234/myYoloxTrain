@@ -29,6 +29,8 @@ def make_parser():
         "-o", "--opset", default=11, type=int, help="onnx opset version"
     )
     parser.add_argument("--batch-size", type=int, default=1, help="batch size")
+    parser.add_argument("--image_h", type=int, default=1, help="image height")
+    parser.add_argument("--image_w", type=int, default=1, help="image width")
     parser.add_argument(
         "--dynamic", action="store_true", help="whether the input shape should be dynamic or not"
     )
@@ -82,7 +84,8 @@ def main():
     model.head.onnx_export=True            #设为true才行
 
     logger.info("loading checkpoint done.")
-    dummy_input = torch.randn(args.batch_size, 3, exp.test_size[0], exp.test_size[1])
+    # dummy_input = torch.randn(args.batch_size, 3, exp.test_size[0], exp.test_size[1])
+    dummy_input = torch.randn(args.batch_size, 3, args.image_h, args.image_w)
 
     torch.onnx._export(
         model,

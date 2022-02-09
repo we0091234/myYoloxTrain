@@ -1,6 +1,10 @@
 #!/bin/bash
 python \
 export_onnx.py \
---output-name yolox_s_m.onnx \
--f exps/default/yolox_s_m.py \
--c YOLOX_outputs/yolox_voc_s_m/best_ckpt.pth 
+--output-name onnxModel/117_ckpt_dynamic_160_160.onnx \
+-f exps/default/yolox_s_l.py \
+--image_h  160 \
+--image_w  160 \
+--batch-size 4 \
+--dynamic \
+-c YOLOX_outputs/yolox_voc_s_l/late15/117_ckpt.pth

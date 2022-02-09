@@ -17,7 +17,7 @@ class Exp(BaseExp):
         super().__init__()
 
         # ---------------- model config ---------------- #
-        self.num_classes = 8
+        self.num_classes = 80
         self.depth = 1.00
         self.width = 1.00
 
@@ -54,7 +54,7 @@ class Exp(BaseExp):
         self.warmup_lr = 0
         self.basic_lr_per_img = 0.01 / 64.0
         self.scheduler = "yoloxwarmcos"
-        self.no_aug_epochs = 35
+        self.no_aug_epochs = 15
         self.min_lr_ratio = 0.05
         self.ema = True
 

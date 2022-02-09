@@ -16,10 +16,10 @@ class Exp(MyExp):
         # self.width = 0.50
         self.width = 0.25
         self.warmup_epochs = 1
-
+        self.mosaic_scale = (0.5, 1.5)
         # ---------- transform config ------------ #
         self.mosaic_prob = 1.0
-        self.mixup_prob = 1.0
+        self.mixup_prob = 0.5
         self.hsv_prob = 1.0
         self.flip_prob = 0.5
 
